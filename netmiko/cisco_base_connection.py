@@ -10,15 +10,33 @@ import time
 class CiscoBaseConnection(BaseConnection):
     """Base Class for cisco-like behavior."""
     def check_enable_mode(self, check_string='#'):
-        """Check if in enable mode. Return boolean."""
+        """Check if in enable mode. Return boolean.
+
+        :param check_string: a search pattern to determine if the device is in enable mode
+        :type check_string: str
+        """
         return super(CiscoBaseConnection, self).check_enable_mode(check_string=check_string)
 
     def enable(self, cmd='enable', pattern='ssword', re_flags=re.IGNORECASE):
-        """Enter enable mode."""
+        """Enter enable mode.
+
+        :param cmd: command to send to device in order to enter enable mode
+        :type cmd: str
+
+        :param pattern: pattern to search for indicating device is waiting for password
+        :type pattern: str
+
+        :param re_flags: Regular expression flags used in conjunction with pattern
+        :type re_flags: int
+        """
         return super(CiscoBaseConnection, self).enable(cmd=cmd, pattern=pattern, re_flags=re_flags)
 
     def exit_enable_mode(self, exit_command='disable'):
-        """Exits enable (privileged exec) mode."""
+        """Exits enable (privileged exec) mode.
+
+        :param exit_command: Command that exits the session from privileged mode
+        :type exit_command: str
+        """
         return super(CiscoBaseConnection, self).exit_enable_mode(exit_command=exit_command)
 
     def check_config_mode(self, check_string=')#', pattern=''):
@@ -26,6 +44,12 @@ class CiscoBaseConnection(BaseConnection):
         Checks if the device is in configuration mode or not.
 
         Cisco IOS devices abbreviate the prompt at 20 chars in config mode
+
+        :param check_string: Identification of configuration mode from the device
+        :type check_string: str
+
+        :param pattern: Pattern to terminate reading of channel
+        :type pattern: str
         """
         return super(CiscoBaseConnection, self).check_config_mode(check_string=check_string,
                                                                   pattern=pattern)
@@ -35,6 +59,12 @@ class CiscoBaseConnection(BaseConnection):
         Enter into configuration mode on remote device.
 
         Cisco IOS devices abbreviate the prompt at 20 chars in config mode
+
+        :param config_command: Configuration command to send to the device
+        :type config_command: str
+
+        :param pattern: Pattern to terminate reading of channel
+        :type pattern: str
         """
         if not pattern:
             pattern = re.escape(self.base_prompt[:16])
@@ -42,13 +72,38 @@ class CiscoBaseConnection(BaseConnection):
                                                             pattern=pattern)
 
     def exit_config_mode(self, exit_config='end', pattern='#'):
-        """Exit from configuration mode."""
+        """Exit from configuration mode.
+
+        :param exit_config: Command to exit configuration mode
+        :type exit_config: str
+
+        :param pattern: Pattern to terminate reading of channel
+        :type pattern: str
+        """
         return super(CiscoBaseConnection, self).exit_config_mode(exit_config=exit_config,
                                                                  pattern=pattern)
 
     def serial_login(self, pri_prompt_terminator=r'#\s*$', alt_prompt_terminator=r'>\s*$',
                      username_pattern=r"(?:user:|username|login)", pwd_pattern=r"assword",
                      delay_factor=1, max_loops=20):
+        """Serial Login
+
+        :param pri_prompt_terminator: Primary trailing delimiter for identifying a device prompt
+        :type pri_prompt_terminator: str
+
+        :param alt_prompt_terminator: Alternate trailing delimiter for identifying a device prompt
+        :type alt_prompt_terminator: str
+
+        :param username_pattern: Pattern used to identify the username prompt
+        :type username_pattern: str
+
+        :param delay_factor: See __init__: global_delay_factor
+        :type delay_factor: int
+
+        :param max_loops: Controls the wait time in conjunction with the delay_factor
+        (default: 20)
+        """
+
         self.write_channel(self.TELNET_RETURN)
         output = self.read_channel()
         if (re.search(pri_prompt_terminator, output, flags=re.M)
@@ -63,6 +118,7 @@ class CiscoBaseConnection(BaseConnection):
                      pwd_pattern=r"assword",
                      delay_factor=1, max_loops=20):
         """Telnet login. Can be username/password or just password."""
+
         delay_factor = self.select_delay_factor(delay_factor)
         time.sleep(1 * delay_factor)
 
